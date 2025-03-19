@@ -1,36 +1,44 @@
-# This is a basic workflow to help you get started with Actions
+name: CI - Ejecución de Pruebas Unitarias con Pytest
+run-name: Ejecutar pruebas unitarias con Pytest en Python (🧪)
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  test:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: 📥 Clonar el repositorio y obtener el código fuente
+        uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: 🔧 Configurar entorno de Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: 📦 Instalar dependencias del proyecto
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest-html
+
+      - name: 🛠️ Generar archivo de pruebas unitarias si no existe
+        run: python generate_tests.py
+
+      - name: 🧪 Ejecutar pruebas unitarias con Pytest y generar HTML
+        run: |
+          PYTHONPATH=. pytest -v --disable-warnings --html=report.html
+          echo "✅ Pruebas ejecutadas, verificando existencia de report.html"
+          ls -lah
+
+      - name: 📤 Subir reporte de pruebas en HTML a GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report-html
+          path: report.html
