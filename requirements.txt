@@ -1,0 +1,4 @@
+pytest
+pytest-html
+pygame==2.5.0
+pytest==8.3.5
